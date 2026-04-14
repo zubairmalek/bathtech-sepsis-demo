@@ -1,0 +1,35 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, feature/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  quality-pipeline:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install pytest pytest-cov ruff
+
+      - name: "Step 1: Ruff linting"
+        run: ruff check .
+
+      - name: "Step 2: pytest unit tests"
+        run: pytest test_sepsis_model.py -v
+
+      - name: "Step 3: Coverage gate (>=90%)"
+        run: pytest test_sepsis_model.py --cov=sepsis_model --cov-fail-under=90 -v
+
+      - name: "Step 4: Summary"
+        run: echo "All quality gates passed. Ready for Safety Officer review."
